@@ -5,3 +5,7 @@
 *.cmd
 *.log
 *.prj
+*.html
+*.xreport
+*.projectmgr
+*.ncd
