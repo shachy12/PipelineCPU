@@ -39,3 +39,6 @@ b loop
 add r0, r1
 ```
 The add instruction always runs before going back to the start of the loop. The delay slot should use for optimization and minimizing code. In case you don't want to run any instruction you should put nop instead.
+
+## Data Hazards
+The CPU deals with data hazards and there should be no problem using the same register in consecutive instructions.
