@@ -26,3 +26,14 @@ Those registers are used to data processing. R14 is used as the status register.
 ## Instruction Set
 The instructions are documented in the file Documents/Instruction Set.csv.
 Not all instructions are implemented. All the instructions are 16-bit fixed length.
+
+### Branches
+In order to deal with control hazards by definition every branch has a delay slot.
+for example lets look at the following code:
+```asm
+mov #1, r0
+mov #0, r1
+loop:
+b loop
+add r0, r1
+```
