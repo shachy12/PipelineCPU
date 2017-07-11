@@ -1,46 +1,33 @@
---------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
 -- Company: 
--- Engineer:
+-- Engineer: 
+-- 
+-- Create Date:    15:27:41 07/04/2017 
+-- Design Name: 
+-- Module Name:    cpu - Behavioral 
+-- Project Name: 
+-- Target Devices: 
+-- Tool versions: 
+-- Description: 
 --
--- Create Date:   23:26:34 06/26/2017
--- Design Name:   
--- Module Name:   C:/Users/DELL/Desktop/Projects/FPGA/PipelineCPU/Code/cpu_tb.vhd
--- Project Name:  Code
--- Target Device:  
--- Tool versions:  
--- Description:   
--- 
--- VHDL Test Bench Created by ISE for module: fetch
--- 
--- Dependencies:
--- 
--- Revision:
+-- Dependencies: 
+--
+-- Revision: 
 -- Revision 0.01 - File Created
--- Additional Comments:
+-- Additional Comments: 
 --
--- Notes: 
--- This testbench has been automatically generated using types std_logic and
--- std_logic_vector for the ports of the unit under test.  Xilinx recommends
--- that these types always be used for the top-level I/O of a design in order
--- to guarantee that the testbench will bind correctly to the post-implementation 
--- simulation model.
---------------------------------------------------------------------------------
-LIBRARY ieee;
-USE ieee.std_logic_1164.ALL;
+----------------------------------------------------------------------------------
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
 use work.cpu_pack.all;
- 
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---USE ieee.numeric_std.ALL;
- 
-ENTITY cpu_tb IS
-END cpu_tb;
- 
-ARCHITECTURE behavior OF cpu_tb IS 
- 
-    -- Component Declaration for the Unit Under Test (UUT)
- 
-    COMPONENT fetch
+
+entity cpu is
+    Port ( i_Clock : in  STD_LOGIC;
+           LED : out  STD_LOGIC_VECTOR(0 to 7));
+end cpu;
+
+architecture Behavioral of cpu is
+     COMPONENT fetch
     PORT(
          i_Clock : IN  std_logic;
          i_SR_T_Bit : IN std_logic;
@@ -54,7 +41,6 @@ ARCHITECTURE behavior OF cpu_tb IS
     
 
    --Inputs
-   signal i_Clock : std_logic := '0';
    signal i_ControlHazard : std_logic := '0';
    signal i_NewPC : std_logic_vector(0 to 31) := (others => '0');
 
@@ -138,13 +124,9 @@ ARCHITECTURE behavior OF cpu_tb IS
                                         register_select => (others => '0'),
                                         write_value => (others => '0'),
                                         size => 0);
-   -- Clock period definitions
-   constant i_Clock_period : time := 1 ns;
- 
-BEGIN
- 
-	-- Instantiate the Unit Under Test (UUT)
-   FetchStage: fetch PORT MAP (
+begin
+
+    FetchStage: fetch PORT MAP (
           i_Clock => i_Clock,
           i_SR_T_Bit => o_SR_T_Bit,
           i_ExpectedTBitValue => o_ExpectedTBitValue,
@@ -180,7 +162,7 @@ BEGIN
           o_SR_T_Bit => o_SR_T_Bit
         );
    
-   RamStage : RAM GENERIC MAP(RAM_SIZE => 10 * 1024) -- 10 KB
+   RamStage : RAM GENERIC MAP(RAM_SIZE => 10) -- 10 bytes
                   PORT MAP(i_Clock => i_Clock,
                            i_RamCmd => i_RamCmd,
                            o_WriteCmd => i_WriteCmd
@@ -193,20 +175,6 @@ BEGIN
           o_gpio => o_gpio,
           o_registers_read_bus => o_registers_read_bus
         );
-   
-   -- Clock process definitions
-   i_Clock_process :process
-   begin
-		i_Clock <= '0';
-		wait for i_Clock_period/2;
-		i_Clock <= '1';
-		wait for i_Clock_period/2;
-   end process;
- 
-   -- Stimulus process
-   stim_proc: process
-   begin		
-      wait;
-   end process;
+    LED <= o_gpio;
+end Behavioral;
 
-END;

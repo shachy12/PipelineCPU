@@ -26,7 +26,9 @@ entity alu is
     Port ( i_Clock : in  STD_LOGIC;
            i_Command: in t_alu_command;
            i_bus : in t_bus_4d;
-           o_RamCmd : out t_ram_command);
+           o_RamCmd : out t_ram_command;
+           i_CurrentPC : t_memory_address;
+           o_SR_T_Bit : out STD_LOGIC);
 end alu;
 
 architecture a1 of alu is    
@@ -47,15 +49,17 @@ architecture a1 of alu is
         end case;
         return v_data;
     end function load_parameter;
-
+    signal r_SR_T_Bit : std_logic := '0';
 begin
     process (i_Clock)
         variable v_value1 : unsigned(0 to 31) := (others => '0');
         variable v_value2 : unsigned(0 to 31) := (others => '0');
         variable v_output : unsigned(0 to 31) := (others => '0');
         variable v_mul_output : unsigned(0 to 63) := (others => '0');
+        variable v_SR_T_Bit : std_Logic := '0';
     begin
         if rising_edge(i_Clock) then
+            
             v_value1 := load_parameter(i_Command.parameter1,
                                       i_bus);
             v_value2 := load_parameter(i_Command.parameter2,
@@ -76,19 +80,38 @@ begin
                     v_output := v_value1 - v_value2;
                 when ALU_MUL =>
                     v_mul_output := (v_value1 * v_value2);
-                    v_output := v_mul_output(v_output'range);
+                    v_output := v_mul_output(32 to 63);
                 when ALU_DIV =>
                     v_output := v_value1 / v_value2;
-                when ALU_CMP =>
+                when ALU_CMPEQ =>
                     v_output := (others => '0');
+                    
                     if v_value1 = v_value2 then
-                        v_output(REGISTER_SR_EQUAL_BIT) := '1';
+                        v_output(REGISTER_SR_T_BIT) := '1';
+                        v_SR_T_Bit := '1';
+                    else
+                        v_output(REGISTER_SR_T_BIT) := '0';
+                        v_SR_T_Bit := '0';
                     end if;
+                when ALU_CMPG =>
+                    v_output := (others => '0');
+                    
                     if v_value1 > v_value2 then
-                        v_output(REGISTER_SR_GREATER_BIT) := '1';
+                        v_output(REGISTER_SR_T_BIT) := '1';
+                        o_SR_T_Bit <= '1';
+                    else
+                        v_output(REGISTER_SR_T_BIT) := '0';
+                        o_SR_T_Bit <= '0';
                     end if;
+                when ALU_CMPL =>
+                    v_output := (others => '0');
+                    
                     if v_value1 < v_value2 then
-                        v_output(REGISTER_SR_LESS_BIT) := '1';
+                        v_output(REGISTER_SR_T_BIT) := '1';
+                        o_SR_T_Bit <= '1';
+                    else
+                        v_output(REGISTER_SR_T_BIT) := '0';
+                        o_SR_T_Bit <= '0';
                     end if;
                 when others =>
                     -- Unknown Operation
@@ -106,6 +129,7 @@ begin
                 o_RamCmd.size <= 0;
                 o_RamCmd.address <= (others => '0');
             end if;
+            o_SR_T_Bit <= v_SR_T_Bit;
         end if;
     end process;
 

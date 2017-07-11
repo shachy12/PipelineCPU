@@ -40,35 +40,35 @@ process (i_Clock)
 begin
     if rising_edge(i_Clock) then
         case i_RamCmd.cmd_type is
-            when RAM_WRITE =>
-                o_WriteCmd.write_enable <= '0';
-                o_WriteCmd.register_select <= (others => '0');
-                o_WriteCmd.write_value <= (others => '0');
-                if i_RamCmd.size >= 1 then
-                    write8bit(r_RAM, i_RamCmd.address, i_RamCmd.write_value(24 to 31));
-                end if;
-                if i_RamCmd.size >= 2 then
-                    write8bit(r_RAM, i_RamCmd.address, i_RamCmd.write_value(16 to 23));
-                end if;
-                if i_RamCmd.size >= 3 then
-                    write8bit(r_RAM, i_RamCmd.address, i_RamCmd.write_value(8 to 15));
-                end if;
-                if i_RamCmd.size = 4 then
-                    write8bit(r_RAM, i_RamCmd.address, i_RamCmd.write_value(0 to 7));
-                end if;
-            when RAM_READ =>
-                o_WriteCmd.write_enable <= '1';
-                o_WriteCmd.register_select <= i_RamCmd.register_select;
-                case i_RamCmd.size is
-                    when 1 =>
-                        o_WriteCmd.write_value(24 to 31) <= read8bit(r_RAM, i_RamCmd.address);
-                    when 2 =>
-                        o_WriteCmd.write_value(16 to 31) <= read16bit(r_RAM, i_RamCmd.address);
-                    when 4 =>
-                        o_WriteCmd.write_value <= read32bit(r_RAM, i_RamCmd.address);
-                    when others =>
-                        -- TODO: handle error
-                end case;
+--            when RAM_WRITE =>
+--                o_WriteCmd.write_enable <= '0';
+--                o_WriteCmd.register_select <= (others => '0');
+--                o_WriteCmd.write_value <= (others => '0');
+--                if i_RamCmd.size >= 1 then
+--                    write8bit(r_RAM, i_RamCmd.address, i_RamCmd.write_value(24 to 31));
+--                end if;
+--                if i_RamCmd.size >= 2 then
+--                    write8bit(r_RAM, i_RamCmd.address, i_RamCmd.write_value(16 to 23));
+--                end if;
+--                if i_RamCmd.size >= 3 then
+--                    write8bit(r_RAM, i_RamCmd.address, i_RamCmd.write_value(8 to 15));
+--                end if;
+--                if i_RamCmd.size = 4 then
+--                    write8bit(r_RAM, i_RamCmd.address, i_RamCmd.write_value(0 to 7));
+--                end if;
+--            when RAM_READ =>
+--                o_WriteCmd.write_enable <= '1';
+--                o_WriteCmd.register_select <= i_RamCmd.register_select;
+--                case i_RamCmd.size is
+--                    when 1 =>
+--                        o_WriteCmd.write_value(24 to 31) <= read8bit(r_RAM, i_RamCmd.address);
+--                    when 2 =>
+--                        o_WriteCmd.write_value(16 to 31) <= read16bit(r_RAM, i_RamCmd.address);
+--                    when 4 =>
+--                        o_WriteCmd.write_value <= read32bit(r_RAM, i_RamCmd.address);
+--                    when others =>
+--                        -- TODO: handle error
+--                end case;
             when RAM_PASS_WRITEBACK =>
                 o_WriteCmd.write_enable <= '1';
                 o_WriteCmd.register_select <= i_RamCmd.register_select;

@@ -5,7 +5,7 @@ MOV,"Rn, Rm",Rn -> Rm,N,0010 0000 nnnn mmmm
 MOV,"[Rn], Rm",*Rn -> Rm,N,0010 0001 nnnn mmmm
 MOV,"Rn, [Rm]",Rn -> *Rm,N,0010 0010 nnnn mmmm
 MOV,"#i, Rn",I -> Rn,N,0011 iiii iiii nnnn
-CMP,"Rn, Rm",,N,0010 0011 nnnn mmmm
+CMPEQ,"Rn, Rm",,N,0010 0011 nnnn mmmm
 NOT,"Rn, Rm",~Rn -> Rm,N,0010 0100 nnnn mmmm
 AND,"Rn, Rm",Rn & Rm -> Rm,N,0010 0101 nnnn mmmm
 OR,"Rn, Rm",Rn | Rm -> Rm,N,0010 0110 nnnn mmmm
@@ -14,11 +14,13 @@ ADD,"Rn, Rm",Rn + Rm -> Rm,N,0010 1000 nnnn mmmm
 SUB,"Rn, Rm",Rn - Rm -> Rm,N,0010 1001 nnnn mmmm
 MUL,"Rn, Rm",Rn * Rm -> Rm,N,0010 1010 nnnn mmmm
 DIV,"Rn, Rm",Rn / Rm -> Rm,N,0010 1011 nnnn mmmm
+CMPG,"Rn, Rm",,N,0010 1100 nnnn mmmm
+CMPL,"Rn, Rm",,N,0010 1101 nnnn mmmm
 SHL,Rn,Rn << 8 -> Rn,N,0001 0001 0000 nnnn
 SHR,Rn,Rn >> 8 -> Rn,N,0001 0010 0000 nnnn
-BE,#d,PC + (d * 2) -> PC,Y,0001 0011 dddd dddd
-BG,#d,PC + (d * 2) -> PC,Y,0001 0100 dddd dddd
-BL,#d,PC + (d * 2) -> PC,Y,0001 0101 dddd dddd
+BT,#d,PC + (d * 2) -> PC,Y,0001 0011 dddd dddd
+BF,#d,PC + (d * 2) -> PC,Y,0001 0100 dddd dddd
+B,#d,PC + (d * 2) -> PC,Y,0001 0101 dddd dddd
 JMP,Rn,Rn -> PC,Y,0001 0110 0000 nnnn
 PUSH,Rn,Rn -> *R15; R15 - 4 -> R15,N,0001 0111 0000 nnnn
 POP,Rn,"R15 + 4 -> R15, *R15 -> Rn",N,0001 1001 0000 nnnn

@@ -36,9 +36,7 @@ package cpu_pack is
              return std_logic_vector;
              
     constant REGISTER_SR : t_register_id := "1110";
-    constant REGISTER_SR_EQUAL_BIT : integer := 0;
-    constant REGISTER_SR_GREATER_BIT : integer := 1;
-    constant REGISTER_SR_LESS_BIT : integer := 2;
+    constant REGISTER_SR_T_BIT : integer := 0;
     
     type t_alu_operation is (ALU_NONE,
                              ALU_NOT,
@@ -49,7 +47,10 @@ package cpu_pack is
                              ALU_SUB,
                              ALU_MUL,
                              ALU_DIV,
-                             ALU_CMP);
+                             ALU_CMPEQ,
+                             ALU_CMPG,
+                             ALU_CMPL
+                             );
     type t_alu_parameter_type is (ALU_PARAMETER_NONE,
                                   ALU_PARAMETER_IMMEDIATE,
                                   ALU_PARAMETER_BUS,
@@ -63,6 +64,7 @@ package cpu_pack is
     
     type t_alu_output_parameter_type is (ALU_OUTPUT_PARAMETER_NONE,
                                          ALU_OUTPUT_PARAMETER_REGISTER,
+                                         ALU_OUTPUT_PARAMETER_DECODE_BUS,
                                          ALU_OUTPUT_PARAMETER_TEMP);
     
     type t_alu_output_parameter is record
@@ -87,6 +89,13 @@ package cpu_pack is
         register_a : t_register_id;
         register_b : t_register_id;
     end record;
+    
+    type t_opcode_data is record
+        instruction : t_instruction;
+        pc : t_memory_address;
+    end record;
+    
+    type t_fetch_opcodes_bus is array(0 to 1) of t_opcode_data;
     
     type t_bus_2d is array (0 to 1) of t_register;
     type t_bus_4d is array (0 to 3) of t_register;

@@ -29,10 +29,11 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity decode is
     Port ( i_Clock : in  STD_LOGIC;
-          -- i_CurrentPC : in t_memory_address;
+           i_CurrentPC : in t_memory_address;
            i_Instruction : in  t_instruction;
-           --o_ControlHazard : out  STD_LOGIC;
-           --o_NewPC : in  t_memory_address;
+           o_ControlHazard : out  STD_LOGIC;
+           o_NewPC : out  t_memory_address;
+           o_ExpectedTBitValue : out STD_LOGIC;
            o_alu_cmd : out t_alu_command;
            o_ReadCmd : out t_registers_read_command);
 end decode;
@@ -54,17 +55,36 @@ architecture a1 of decode is
             i_ReadCmd.register_a = i_cycles_register_usage(index).register_select and
             i_cycles_register_usage(index).ptype = ALU_OUTPUT_PARAMETER_REGISTER then
                 v_bus_select := index + 2;
+                exit;
             else
                 -- if bus 1 and register select same as cycle then use cycle bus instead
                 if i_parameter.bus_select = 1 and 
                 i_ReadCmd.register_b = i_cycles_register_usage(index).register_select and
                 i_cycles_register_usage(index).ptype = ALU_OUTPUT_PARAMETER_REGISTER then
                     v_bus_select := index + 2;
+                    exit;
                 end if;
             end if;
         end loop;
         return v_bus_select;
     end function fix_bus_for_data_hazards;
+    
+    function calculate_new_pc(current_pc : t_memory_address;
+                              immediate : std_logic_vector(0 to 7))
+             return std_logic_vector is
+             variable v_new_pc : t_memory_address := (others => '0');
+             variable v_immediate : unsigned(0 to 31) := (others => '0');
+    begin
+        v_immediate := (others => '0');
+        v_immediate(24 to 31) := unsigned(immediate);
+        v_immediate := v_immediate sll 1;
+        v_new_pc := t_memory_address(unsigned(current_pc) + v_immediate);
+        if v_immediate > 128 then
+            v_immediate := v_immediate - 256;
+            v_new_pc := t_memory_address(unsigned(current_pc) - v_immediate);
+        end if;
+        return v_new_pc;
+    end function calculate_new_pc;
 begin
 
     process (i_Clock)
@@ -85,6 +105,9 @@ begin
                                                                     ptype => ALU_OUTPUT_PARAMETER_NONE,
                                                                     register_select => (others => '0')
                                                                  ));
+        variable v_ControlHazard : std_logic := '0';
+        variable v_NewPC : t_memory_address := x"00000000";
+        variable v_ExpectedTBitValue : std_logic := '0';
     begin
         if rising_edge(i_Clock) then
             v_opcode_group := i_Instruction(0 to 3);
@@ -95,6 +118,9 @@ begin
             v_alu_cmd.parameter2.bus_select := 1;
             v_alu_cmd.output.ptype := ALU_OUTPUT_PARAMETER_REGISTER;
             v_alu_cmd.output.register_select := i_Instruction(12 to 15);
+            
+            v_ControlHazard := '0';
+            v_NewPC := x"00000000";
                         
             case v_opcode_group is
                 when "0000" =>
@@ -102,22 +128,45 @@ begin
                     v_alu_cmd.operation := ALU_NONE;
                     v_alu_cmd.output.ptype := ALU_OUTPUT_PARAMETER_NONE;
                 when "0001" =>
-                    -- SHL, SHR, BE, BG, BL, JMP, PUSH, POP               
+                    -- SHL, SHR, BT, BF, B, JMP, PUSH, POP               
+                    case v_opcode_id is
+                        when "0011" => -- BT
+                            v_ControlHazard := '1';
+                            v_NewPc := calculate_new_pc(i_CurrentPC, i_Instruction(8 to 15));
+                            v_alu_cmd.operation := ALU_NONE;
+                            v_alu_cmd.output.ptype := ALU_OUTPUT_PARAMETER_NONE;
+                            v_ExpectedTBitValue := '1';
+                        when "0100" => -- BF
+                            v_ControlHazard := '1';
+                            v_NewPc := calculate_new_pc(i_CurrentPC, i_Instruction(8 to 15));
+                            v_alu_cmd.operation := ALU_NONE;
+                            v_alu_cmd.output.ptype := ALU_OUTPUT_PARAMETER_NONE;
+                            v_ExpectedTBitValue := '0';
+                        when "0101" =>
+                        when others =>
+                            -- unknown opcode
+                    end case;
                 when "0010" =>
-                    -- CMP, NOT, AND, OR, XOR, ADD, SUB, MUL, DIV,
+                    -- CMPEQ, CMPG, CMPL, NOT, AND, OR, XOR, ADD, SUB, MUL, DIV,
                     -- MOV (Rn -> Rm, [Rn] -> Rm, Rn -> [Rm])
                     v_registers_read_cmd.register_a := i_Instruction(8 to 11);
                     v_registers_read_cmd.register_b := i_Instruction(12 to 15);
                     case v_opcode_id is
                         when "0000" => -- MOV   Rn, Rm
                             v_alu_cmd.operation := ALU_ADD;
-                            v_alu_cmd.parameter1.ptype := ALU_PARAMETER_IMMEDIATE;
-                            v_alu_cmd.parameter1.imm_select := x"00";
+                            v_alu_cmd.parameter2.ptype := ALU_PARAMETER_IMMEDIATE;
+                            v_alu_cmd.parameter2.imm_select := x"00";
                             v_registers_read_cmd.register_b := (others => '0'); -- uses only 1 register
                         when "0001" => -- MOV   [Rn], Rm
                         when "0010" => -- MOV   Rn, [Rm]
-                        when "0011" => -- CMP	Rn, Rm
-                            v_alu_cmd.operation := ALU_CMP;
+                        when "0011" => -- CMPEQ	Rn, Rm
+                            v_alu_cmd.operation := ALU_CMPEQ;
+                            v_alu_cmd.output.register_select := REGISTER_SR;
+                        when "1100" => -- CMPG	Rn, Rm
+                            v_alu_cmd.operation := ALU_CMPG;
+                            v_alu_cmd.output.register_select := REGISTER_SR;
+                        when "1101" => -- CMPL	Rn, Rm
+                            v_alu_cmd.operation := ALU_CMPL;
                             v_alu_cmd.output.register_select := REGISTER_SR;
                         when "0100" => -- NOT	Rn, Rm
                             v_alu_cmd.operation := ALU_NOT;
@@ -177,6 +226,9 @@ begin
             
             o_alu_cmd <= v_alu_cmd;
             o_ReadCmd <= v_registers_read_cmd;
+            o_ControlHazard <= v_ControlHazard;
+            o_NewPC <= v_newPC;
+            o_ExpectedTBitValue <= v_ExpectedTBitValue;
         end if;
     end process;
 

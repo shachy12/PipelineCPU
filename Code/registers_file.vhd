@@ -26,6 +26,7 @@ entity registers_file is
     Port ( i_Clock : in  STD_LOGIC;
            i_ReadCmd : t_registers_read_command;
            i_WriteCmd : in t_registers_write_command;
+           o_gpio : out STD_LOGIC_VECTOR(0 to 7);
            o_registers_read_bus : out t_bus_2d);
 end registers_file;
 
@@ -41,6 +42,7 @@ begin
         
         o_registers_read_bus <= (r_registers(to_integer(unsigned(i_ReadCmd.register_a))),
                                  r_registers(to_integer(unsigned(i_ReadCmd.register_b))));
+        o_gpio <= r_registers(13)(24 to 31);
     end process;
 
 end a1;
