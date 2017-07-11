@@ -4,9 +4,11 @@ mov #68, r0
 mul r0, r0
 mul r0, r0
 mov #1, r2
+loop:
 mov #0, r1
+sleep:
 cmpeq r0, r1
-bf -1
+bf sleep
 add r2, r1
-bt -4
+bt loop
 add r2, r13
