@@ -9,7 +9,7 @@ The processor VHDL files are located in the Code directory.
 | Item | Feature |
 | --- | --- |
 | Registers | Sixteen 32-bit registers |
-| Instruction Set | 16-bit fixed length Delayed branch used to deal with controll hazards|
+| Instruction Set | 16-bit fixed length. Delayed branch used to deal with controll hazards|
 | Pipeline | Five stage pipeline |
 | Endianness | Big Endian |
 
