@@ -27,7 +27,8 @@ Those registers are used to data processing. R14 is used as the status register.
 The instructions are documented in the file Documents/Instruction Set.csv.
 Not all instructions are implemented. All the instructions are 16-bit fixed length.
 
-### Branches
+## Hazards
+### Control Hazards
 In order to deal with control hazards by definition every branch has a delay slot.
 for example lets look at the following code:
 ```asm
@@ -37,3 +38,4 @@ loop:
 b loop
 add r0, r1
 ```
+The add instruction always runs before going back to the start of the loop. The delay slot should use for optimization and minimizing code. In case you don't want to run any instruction you should put nop instead.
